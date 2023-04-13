@@ -1,0 +1,48 @@
+{
+  "Serilog": {
+    "Using": [],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Debug",
+        "System": "Debug"
+      }
+    },
+    "Enrich": [ "FromLogContext", "WithMachineName", "WithProcessId", "WithThreadId" ],
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
+          "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Code, Serilog.Sinks.Console"
+        }
+      },
+
+      {
+        "Name": "Seq",
+        "Args": {
+          "serverUrl": "http://localhost:5341",
+          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
+        }
+      },
+
+      {
+        "Name": "File",
+        "Args": {
+          "path": "C:\\Projects\\CleanArch\\log\\Api\\log.txt",
+          "outputTemplate": "{Timestamp:G} {Message}{NewLine:1}{Excepton:1}"
+        }
+      },
+
+      //,
+      //{
+      //  "Name": "File",
+      //  "Args": {
+      //    "path": "C:\\Users\\Mgh\\source\\repos\\Customer\\AppLog\\log.json",
+      //    "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
+      //    "retainedFileCountLimit": 5
+      //  }
+      //}
+    ]
+  }
+}
