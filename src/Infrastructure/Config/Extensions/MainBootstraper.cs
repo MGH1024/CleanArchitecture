@@ -3,7 +3,6 @@ using Application.Services.CachingProvider;
 using Application.Services.DataShpingProvider;
 using Application.Services.DateTimeProvider;
 using Application.Services.EmailSenderProider;
-using Application.Services.IdentityProvider;
 using Application.Services.Public;
 using Castle.DynamicProxy;
 using Config.Util.Filter;
@@ -14,11 +13,9 @@ using Contract.Services.CachingProvider;
 using Contract.Services.DataShapingProvider;
 using Contract.Services.DatetimeProvider;
 using Contract.Services.EmailSenderProvider;
-using Contract.Services.IdentityProvider;
 using Contract.Services.Public;
 using Contract.Validator.Public;
 using Domain.Contract.Repositories;
-using Domain.Entities.Identity;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -38,7 +35,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
 using Persistence.Data;
-using Persistence.IdentityConfig;
 using Persistence.Repositories;
 using Persistence.Repositories.Base;
 using StackExchange.Redis;
@@ -62,7 +58,6 @@ public static class MainBootsraper
         InitApiCoreConfig(services);
         InitCulture(services);
         InitConfigurations(services, config);
-        InitIdentity(services, config);
         InitDbContext(services, config);
         InitAuthentication(services, config);
         InitDapperContext(services, config);
@@ -123,37 +118,6 @@ public static class MainBootsraper
 
     }
 
-    private static void InitIdentity(IServiceCollection services, IConfiguration config)
-    {
-        var auth = config.GetSection(nameof(Auth)).Get<Auth>();
-
-        services.AddIdentity<User, Domain.Entities.Identity.Role>(op =>
-        {
-            // Password settings.
-            op.Password.RequireDigit = auth.PasswordRequireDigit;
-            op.Password.RequireLowercase = auth.PasswordRequireLowercase;
-            op.Password.RequireNonAlphanumeric = auth.PasswordRequireNonAlphanumeric;
-            op.Password.RequireUppercase = auth.PasswordRequireUppercase;
-            op.Password.RequiredLength = auth.PasswordRequiredLength;
-            op.Password.RequiredUniqueChars = auth.PasswordRequiredUniqueChars;
-
-
-            // Lockout settings.
-            op.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(auth.LockoutDefaultLockoutTimeSpan);
-            op.Lockout.MaxFailedAccessAttempts = auth.LockoutMaxFailedAccessAttempts;
-            op.Lockout.AllowedForNewUsers = auth.LockoutAllowedForNewUsers;
-
-            // User settings.
-            op.User.AllowedUserNameCharacters = auth.AllowedUserNameCharacters;
-            op.User.RequireUniqueEmail = auth.UserRequireUniqueEmail;
-        })
-        .AddRoles<Domain.Entities.Identity.Role>()
-        .AddPasswordValidator<PasswordValidator>()
-        .AddEntityFrameworkStores<AppDbContext>()
-        .AddErrorDescriber<PersianIdentityErrorDescriber>()
-        .AddDefaultTokenProviders();
-    }
-
     private static void InitDbContext(IServiceCollection services, IConfiguration config)
     {
         //sqlserver
@@ -203,15 +167,6 @@ public static class MainBootsraper
 
     private static void InitServices(IServiceCollection services, IConfiguration config)
     {
-        //identity
-        services.AddTransient<IIdentityService, IdentityService>();
-        services.AddTransient<IPermissionService, PermissionService>();
-        services.AddTransient<IUserService, UserService>();
-        services.AddTransient<IRoleService, RoleService>();
-        services.AddTransient<IClaimService, ClaimService>();
-        services.AddTransient<ISignInService, SignInService>();
-
-
         //public
         services.AddTransient<IStateService, StateService>();
         services.AddTransient<IDateTime, DateTimeService>();
@@ -246,10 +201,6 @@ public static class MainBootsraper
 
     private static void InitRepositories(IServiceCollection services)
     {
-        //identity
-        services.AddTransient<IUserRep, UserRep>();
-
-
         //public
         services.AddTransient<IStateRep, StateRep>();
     }
