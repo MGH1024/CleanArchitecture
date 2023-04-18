@@ -9,7 +9,7 @@ using Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Utility.Decryption;
 
-namespace Persistence.Data;
+namespace Persistence.Data; 
 
 public class AppDbContext : DbContext
 {
