@@ -16,7 +16,7 @@
           "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
           "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Code, Serilog.Sinks.Console"
         }
-      },
+      }, 
 
       {
         "Name": "Seq",
