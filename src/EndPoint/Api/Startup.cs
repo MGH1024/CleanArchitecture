@@ -1,6 +1,4 @@
-﻿using Application.Services.ExternalServices;
-using Config.Extensions;
-using Contract.Services.ExternalServices;
+﻿using Config.Extensions;
 using Microsoft.OpenApi.Models;
 using Polly.Extensions.Http;
 using Polly;
@@ -59,41 +57,11 @@ public class Startup
         });
 
         services.AddAutoMapper(typeof(Startup));
-
-        //call httpclient by polly
-        services.AddHttpClient<ISecondApiService, SecondApiService>(
-                client =>
-                {
-                    client.BaseAddress = new Uri(_configuration["SecondApi:BaseUrl"]);
-                    client.Timeout = TimeSpan.FromSeconds(30);
-                })
-            .AddPolicyHandler((provider, _) => GetRetryPolicy());
-
-
-        //call httpclient by HttpClientFactory and custom handler
-        services.AddHttpClient("SecondApi",
-            httpClient => { httpClient.BaseAddress = new Uri(_configuration["SecondApi:BaseUrl"]); });
-        services.AddTransient<ValidateHeaderHandler>();
-        services.AddHttpClient("SecondApi")
-            .AddHttpMessageHandler<ValidateHeaderHandler>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        //app.UseMiddleware<SetTokenMiddleWare>();
+       
         app.MainConfigure(env);
-    }
-
-    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-    {
-        return HttpPolicyExtensions
-                .HandleTransientHttpError()
-                .WaitAndRetryAsync(retryCount: 3,
-                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
-                    , onRetry: (_, __) =>
-                    {
-                        //log
-                    })
-            ;
     }
 }

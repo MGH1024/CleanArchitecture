@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Domain.Entities.Identity;
 using Domain.Entities.Public;
 using Utility.AppSettingConfig;
 using Persistence.DomainConfig.Public;
-using Persistence.DomainConfig.Identity;
 using Contract.Services.DatetimeProvider;
 using Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +11,7 @@ using Utility.Decryption;
 
 namespace Persistence.Data;
 
-public class AppDbContext : IdentityDbContext<User, Role, int, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
+public class AppDbContext : DbContext
 {
     private readonly IHttpContextAccessor _httpContext;
     private readonly string _connectionstring;
@@ -111,19 +108,6 @@ public class AppDbContext : IdentityDbContext<User, Role, int, UserClaim, UserRo
     {
         base.OnModelCreating(builder);
 
-
-        //identity config
-        builder.ApplyConfiguration(new PermissionConfiguration());
-        builder.ApplyConfiguration(new RoleClaimConfiguration());
-        builder.ApplyConfiguration(new RoleConfiguration());
-        builder.ApplyConfiguration(new RolePermissionConfiguration());
-        builder.ApplyConfiguration(new UserClaimConfiguration());
-        builder.ApplyConfiguration(new UserConfiguration());
-        builder.ApplyConfiguration(new UserLoginConfiguration());
-        builder.ApplyConfiguration(new UserRoleConfiguration());
-        builder.ApplyConfiguration(new UserTokenConfiguration());
-        builder.ApplyConfiguration(new UserRefreshTokenConfiguration());
-
         //public config
         builder.ApplyConfiguration(new StateConfiguration());
 
@@ -150,10 +134,4 @@ public class AppDbContext : IdentityDbContext<User, Role, int, UserClaim, UserRo
 
     //public
     public DbSet<State> States { get; set; }
-
-
-    //identity
-    public DbSet<Permission> Permissions { get; set; }
-    public DbSet<RolePermission> RolePermissions { get; set; }
-    public DbSet<UserRefreshToken> UserRefreshToken { get; set; }
 }

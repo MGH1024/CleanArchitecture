@@ -1,7 +1,6 @@
 ﻿using Application.Services.Exception;
 using AutoMapper;
 using Contract.Services.DatetimeProvider;
-using Contract.Services.IdentityProvider;
 using Contract.Services.Public;
 using Contract.Services.Public.DTOs.State;
 using Contract.Validator;
@@ -17,14 +16,12 @@ public class StateService : IStateService
     private readonly IStateRep _stateRepository;
     private readonly IMapper _mapper;
     private readonly IDateTime _dateTime;
-    private readonly IIdentityService _identityService;
 
-    public StateService(IStateRep stateRepository, IMapper mapper, IDateTime dateTime, IIdentityService identityService)
+    public StateService(IStateRep stateRepository, IMapper mapper, IDateTime dateTime)
     {
         _stateRepository = stateRepository ?? throw new ArgumentNullException(nameof(stateRepository)); 
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); 
-        _dateTime = dateTime ?? throw new ArgumentNullException(nameof(dateTime)); 
-        _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService)); 
+        _dateTime = dateTime ?? throw new ArgumentNullException(nameof(dateTime));  
     }
 
     public async Task<IEnumerable<StateDetail>> GetStatesAsync(GetParameter resourceParameter)
@@ -73,7 +70,7 @@ public class StateService : IStateService
 
 
         //2do-refactoring
-        state.CreatedBy = _identityService.GetCurrentUser();
+        state.CreatedBy ="system";
         state.CreatedDate = _dateTime.IranNow;
         state.IsActive = true;
         state.IsUpdated = false;
@@ -92,7 +89,7 @@ public class StateService : IStateService
         state.Code = updateState.Code;
         state.Title = updateState.Title;
         state.Order = updateState.Order;
-        state.UpdatedBy = _identityService.GetCurrentUser();
+        state.UpdatedBy = "system";
         state.UpdatedDate = _dateTime.IranNow;
         state.IsUpdated = true;
         //
@@ -104,7 +101,7 @@ public class StateService : IStateService
         var state = _mapper.Map<State>(deleteState);
 
         //2do-refactoring
-        state.DeletedBy = _identityService.GetCurrentUser();
+        state.DeletedBy = "System";
         state.DeletedDate = _dateTime.IranNow;
         state.IsDeleted = true;
         state.IsActive = false;

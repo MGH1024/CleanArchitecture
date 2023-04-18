@@ -1,5 +1,4 @@
-﻿using Domain.Entities.Identity;
-using Domain.Entities.Public;
+﻿using Domain.Entities.Public;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
