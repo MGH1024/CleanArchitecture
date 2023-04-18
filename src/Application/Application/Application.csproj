@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\ExternalServices\**" />
+    <EmbeddedResource Remove="Services\ExternalServices\**" />
+    <None Remove="Services\ExternalServices\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -18,10 +24,6 @@
     <ProjectReference Include="..\..\Domain\Domain.Contract\Domain.Contract.csproj" />
     <ProjectReference Include="..\..\Infrastructure\Utility\Utility.csproj" />
     <ProjectReference Include="..\Contract\Contract.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\ExternalServices\" />
   </ItemGroup>
 
 </Project>

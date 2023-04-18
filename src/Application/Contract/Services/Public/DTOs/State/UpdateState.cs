@@ -1,10 +1,9 @@
-﻿namespace Contract.Services.Public.DTOs.State;
+﻿using Contract.Services.Public.DTOs.State.Base;
 
-public class UpdateState
+namespace Contract.Services.Public.DTOs.State;
+
+public class UpdateState : StateDto
 {
     public int Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public int Code { get; set; }
     public int Order { get; set; }
 }

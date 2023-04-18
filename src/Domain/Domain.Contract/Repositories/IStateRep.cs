@@ -13,5 +13,6 @@ namespace Domain.Contract.Repositories
         Task CreateStateAsync(State state);
         Task UpdateStateAsync(State state);
         Task DeleteStateAsync(State state);
+        Task<State> GetStateByTitle(string title);
     }
 }

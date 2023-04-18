@@ -64,5 +64,13 @@ namespace Persistence.Repositories
             _appDbContext.States.Remove(state);
             await _appDbContext.SaveChangesAsync();
         }
+
+        public async Task<State> GetStateByTitle (string title)
+        {
+            return await _appDbContext
+            .States
+            .Where(a => a.Title == title)
+            .FirstAsync();
+        }
     }
 }

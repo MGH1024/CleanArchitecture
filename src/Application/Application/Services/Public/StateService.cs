@@ -109,4 +109,9 @@ public class StateService : IStateService
 
         await _stateRepository.DeleteStateAsync(state);
     }
+
+    public async Task<bool> IsStateRegistered(string title)
+    {
+        return await _stateRepository.GetStateByTitle(title) != null;
+    }
 }

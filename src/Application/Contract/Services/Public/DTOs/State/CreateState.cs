@@ -1,8 +1,7 @@
-﻿namespace Contract.Services.Public.DTOs.State;
+﻿using Contract.Services.Public.DTOs.State.Base;
 
-public class CreateState
+namespace Contract.Services.Public.DTOs.State;
+
+public class CreateState : StateDto
 {
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public int Code { get; set; }
 }

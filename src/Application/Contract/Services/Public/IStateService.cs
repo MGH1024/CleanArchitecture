@@ -1,5 +1,6 @@
 ﻿using Contract.Services.Public.DTOs.State;
 using Domain.Contract.Models;
+using Domain.Entities.Public;
 
 namespace Contract.Services.Public;
 
@@ -13,4 +14,5 @@ public interface IStateService
     Task CreateStateAsync(CreateState createState);
     Task UpdateStateAsync(UpdateState updateState);
     Task DeleteStateAsync(DeleteState deleteState);
+    Task<bool> IsStateRegistered(string title);
 }
