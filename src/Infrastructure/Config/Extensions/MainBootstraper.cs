@@ -4,7 +4,6 @@ using Persistence.Data;
 using FluentValidation;
 using Contract.Services;
 using Config.Util.Filter;
-using Utility.Decryption;
 using Castle.DynamicProxy;
 using StackExchange.Redis;
 using System.Globalization;
@@ -40,17 +39,16 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Application.Services.CachingProvider;
 using Contract.Services.DataShapingProvider;
 using Application.Services.DateTimeProvider;
-using Contract.Services.EmailSenderProvider;
 using Application.Services.DataShpingProvider;
-using Application.Services.EmailSenderProider;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Config.Extensions;
 
-public static class MainBootsraper
+public static class MainBootstrap
 {
-    private static readonly ProxyGenerator _dynamicProxy = new();
+    private static readonly ProxyGenerator DynamicProxy = new();
+
     //startup ConfigureServices
     public static void MainConfigureServices(this IServiceCollection services, IConfiguration config)
     {
@@ -61,10 +59,10 @@ public static class MainBootsraper
         InitAuthentication(services, config);
         InitDapperContext(services, config);
         InitRepositories(services);
-        InitServices(services,config);
+        InitServices(services, config);
         InitCors(services);
         InitFluentValidator(services);
-        InitValdiationDecorator(services);
+        InitValidationDecorator(services);
     }
 
     private static void InitApiCoreConfig(IServiceCollection services)
@@ -78,27 +76,26 @@ public static class MainBootsraper
         services.AddControllers(options => options.Filters.Add(typeof(ModelStateValidatorAttribute)));
 
         services.AddControllersWithViews()
-           .AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
-           .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
+            .AddNewtonsoftJson(op =>
+                op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
+            .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
 
         services.AddMvc(setup =>
-        {
-            setup.ReturnHttpNotAcceptable = true;
-            setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-        }).AddFluentValidation(options =>
-        {
-            options.ValidatorOptions.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
-            options.DisableDataAnnotationsValidation = true;
-            options.AutomaticValidationEnabled = true;
-        })
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-            options.JsonSerializerOptions.PropertyNamingPolicy = null;
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
-
-
+            {
+                setup.ReturnHttpNotAcceptable = true;
+                setup.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            }).AddFluentValidation(options =>
+            {
+                options.ValidatorOptions.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+                options.DisableDataAnnotationsValidation = true;
+                options.AutomaticValidationEnabled = true;
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
     }
 
     private static void InitConfigurations(IServiceCollection services, IConfiguration config)
@@ -113,8 +110,7 @@ public static class MainBootsraper
             config.GetSection(nameof(Cache)).Bind(option));
 
         services.Configure<Auth>(option =>
-          config.GetSection(nameof(Auth)).Bind(option));
-
+            config.GetSection(nameof(Auth)).Bind(option));
     }
 
     private static void InitDbContext(IServiceCollection services, IConfiguration config)
@@ -122,7 +118,7 @@ public static class MainBootsraper
         //sqlserver
         var sqlConfig = config.GetSection(nameof(DbConnection)).Get<DbConnection>().SqlConnection;
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(DecryptionHelper.Decrypt(sqlConfig)));
+        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(sqlConfig));
 
         //postgres
         //var postgresConfig = config.GetSection(nameof(DbConnection)).Get<DbConnection>().PostgresConnection;
@@ -134,20 +130,20 @@ public static class MainBootsraper
     {
         //sqlserver
         var sqlConfig = config.GetSection(nameof(DbConnection)).Get<DbConnection>().SqlConnection;
-        services.AddTransient<IDbConnection>((sp) => new SqlConnection(DecryptionHelper.Decrypt(sqlConfig)));
+        services.AddTransient<IDbConnection>((sp) => new SqlConnection(sqlConfig));
     }
 
     private static void InitAuthentication(IServiceCollection services, IConfiguration config)
     {
         var auth = config.GetSection(nameof(Auth)).Get<Auth>();
         services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddCookie()
-        .AddJwtBearer(jwt =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddCookie()
+            .AddJwtBearer(jwt =>
             {
                 var key = Encoding.ASCII.GetBytes(auth.AuthKey);
                 jwt.SaveToken = auth.SaveToken;
@@ -159,7 +155,6 @@ public static class MainBootsraper
                     ValidateAudience = auth.ValidateAudience,
                     RequireExpirationTime = auth.RequireExpirationTime,
                     ValidateLifetime = auth.ValidateLifetime,
-
                 };
             });
     }
@@ -169,7 +164,6 @@ public static class MainBootsraper
         //public
         services.AddTransient<IStateService, StateService>();
         services.AddTransient<IDateTime, DateTimeService>();
-        services.AddTransient<IEmailSender, EmailSender>();
         services.AddTransient(typeof(IDataShaper<>), typeof(DataShaper<>));
         //services.AddTransient<>
 
@@ -188,11 +182,10 @@ public static class MainBootsraper
             DefaultDatabase = redisConnection.DefaultDatabase,
             ConnectTimeout = redisConnection.ConnectTimeout,
             Password = redisConnection.Password,
-
         };
 
         configurationOptions.EndPoints.Add(redisConnection.Host, redisConnection.Port);
-        services.AddSingleton<IConnectionMultiplexer>(opt =>
+        services.AddSingleton<IConnectionMultiplexer>(
             ConnectionMultiplexer.Connect(configurationOptions));
 
         services.AddTransient(typeof(ICachingService<>), typeof(CachingService<>));
@@ -226,7 +219,8 @@ public static class MainBootsraper
             })
             .Configure<RequestLocalizationOptions>(requestLocalizationOptions =>
             {
-                requestLocalizationOptions.DefaultRequestCulture = new RequestCulture(CultureInfo.GetCultureInfo("en-US"));
+                requestLocalizationOptions.DefaultRequestCulture =
+                    new RequestCulture(CultureInfo.GetCultureInfo("en-US"));
                 requestLocalizationOptions.SupportedCultures = supportedCultures;
                 requestLocalizationOptions.SupportedUICultures = supportedCultures;
                 requestLocalizationOptions.RequestCultureProviders.Insert(0, new CultureRequestCultureProvider());
@@ -243,35 +237,34 @@ public static class MainBootsraper
         });
     }
 
-    private static void InitValdiationDecorator(IServiceCollection services)
+    private static void InitValidationDecorator(IServiceCollection services)
     {
         services.AddTransient<ValidationAsyncInterceptor>();
-        var aaa = services
-            .Where(x =>
-                x.ServiceType.BaseType != null).ToList();
-
-        var bbb = services
-            .Where(x =>
-                x.ServiceType.BaseType != null
-                &&
-                x.ServiceType.BaseType.Namespace.Equals(typeof(AbstractValidator<>).Namespace)).ToList();
         var entityWithValidation = services
             .Where(x =>
-
-                x.ServiceType.BaseType != null
+                x.ServiceType.BaseType is { Namespace: { } } 
                 &&
                 x.ServiceType.BaseType.Namespace.Equals(typeof(AbstractValidator<>).Namespace))
             .Select(x =>
                 x.ServiceType.BaseType.GenericTypeArguments.FirstOrDefault()).ToList();
-
-        var ccc=typeof(AbstractValidator<>).Namespace;
-        var serviceTypes = services.Where(x => x.ServiceType.Namespace.StartsWith(typeof(IBaseService).Namespace, StringComparison.Ordinal)
-                                               //&&
-                                               //!x.ServiceType.Namespace.Equals(typeof(CommissionDtoValidation).Namespace, StringComparison.Ordinal)
-                                               &&
-                                               x.ServiceType.GetMethods().Select(x => x.GetParameters()).SelectMany(x => x.ToList()).Select(x => x.ParameterType).Intersect(entityWithValidation).Any()
-                                         )
-                                    .Select(x => x.ServiceType).ToList();
+        var serviceTypes = services.Where(x =>
+            {
+                var value = typeof(IBaseService).Namespace;
+                return x.ServiceType.Namespace != null
+                       &&
+                       value != null 
+                       &&
+                       x.ServiceType.Namespace.StartsWith(value, StringComparison.Ordinal) 
+                       //&&
+                       //!x.ServiceType.Namespace.Equals(typeof(CommissionDtoValidation).Namespace, StringComparison.Ordinal)
+                       &&
+                       x.ServiceType.GetMethods()
+                           .Select(x => x.GetParameters())
+                           .SelectMany(x => x.ToList())
+                           .Select(x => x.ParameterType)
+                           .Intersect(entityWithValidation).Any();
+            })
+            .Select(x => x.ServiceType).ToList();
 
         DecorateServices(services, serviceTypes);
     }
@@ -282,12 +275,12 @@ public static class MainBootsraper
         {
             services.Decorate(serviceType,
                 (target, serviceProvider) =>
-                _dynamicProxy.CreateInterfaceProxyWithTargetInterface(
-                    interfaceToProxy: serviceType,
-                    target: target,
-                    interceptors: serviceProvider.GetService<ValidationAsyncInterceptor>()
+                    DynamicProxy.CreateInterfaceProxyWithTargetInterface(
+                        interfaceToProxy: serviceType,
+                        target: target,
+                        interceptors: serviceProvider.GetService<ValidationAsyncInterceptor>()
                     )
-                );
+            );
         }
     }
 
@@ -313,7 +306,7 @@ public static class MainBootsraper
                 appBuilder.Run(async context =>
                 {
                     context.Response.StatusCode = 500;
-                    await context.Response.WriteAsync("an unexpected fault happend.Try again Later.");
+                    await context.Response.WriteAsync("an unexpected fault happen.Try again Later.");
                 });
             });
             app.UseHsts();

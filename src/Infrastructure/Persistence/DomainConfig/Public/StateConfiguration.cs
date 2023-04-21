@@ -20,7 +20,7 @@ public class StateConfiguration : IEntityTypeConfiguration<State>
 
 
         builder.Property(t => t.Title)
-            .HasMaxLength(maxLength: 256)
+            .HasMaxLength(maxLength: 512)
             .IsRequired();
 
         builder.Property(t => t.Description)
